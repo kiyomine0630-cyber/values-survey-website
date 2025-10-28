@@ -411,7 +411,21 @@
 
         // Save anonymous data
         function saveAnonymousData() {
-            const data = JSON.parse(localStorage.getItem('surveyData'));
+            let data;
+            try {
+                const storedData = localStorage.getItem('surveyData');
+                if (!storedData) {
+                    data = { responses: [] };
+                } else {
+                    data = JSON.parse(storedData);
+                    if (!data.responses) {
+                        data.responses = [];
+                    }
+                }
+            } catch (e) {
+                console.error('Error parsing stored data:', e);
+                data = { responses: [] };
+            }
             
             const newResponse = {
                 timestamp: new Date().toISOString(),
@@ -435,135 +449,174 @@
 
         // Update response count
         function updateResponseCount() {
-            const data = JSON.parse(localStorage.getItem('surveyData'));
-            document.getElementById('responseCount').textContent = data.responses.length;
+            try {
+                const data = JSON.parse(localStorage.getItem('surveyData'));
+                const count = data && data.responses ? data.responses.length : 0;
+                document.getElementById('responseCount').textContent = count;
+            } catch (e) {
+                console.error('Error updating response count:', e);
+                document.getElementById('responseCount').textContent = '0';
+            }
         }
 
         // Display recent responses
         function displayRecentResponses() {
-            const data = JSON.parse(localStorage.getItem('surveyData'));
-            const container = document.getElementById('recentResponses');
-            
-            const recentResponses = data.responses.slice(-5).reverse();
-            
-            if (recentResponses.length === 0) {
-                container.innerHTML = '<p>No responses yet.</p>';
-                return;
-            }
-
-            let html = `
-                <table class="data-table">
-                    <thead>
-                        <tr>
-                            <th>Time</th>
-                            <th>Current - Health</th>
-                            <th>Current - Emotional</th>
-                            <th>Current - Tech</th>
-                            <th>Future - Health</th>
-                            <th>Future - Emotional</th>
-                            <th>Future - Tech</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-            `;
-            
-            recentResponses.forEach(response => {
-                const date = new Date(response.timestamp);
-                const timeString = date.toLocaleString();
+            try {
+                const data = JSON.parse(localStorage.getItem('surveyData'));
+                const container = document.getElementById('recentResponses');
                 
-                html += `
-                    <tr>
-                        <td>${timeString}</td>
-                        <td>${response.current[0]}</td>
-                        <td>${response.current[1]}</td>
-                        <td>${response.current[2]}</td>
-                        <td>${response.future[0]}</td>
-                        <td>${response.future[1]}</td>
-                        <td>${response.future[2]}</td>
-                    </tr>
+                if (!data || !data.responses || data.responses.length === 0) {
+                    container.innerHTML = '<p>No responses yet.</p>';
+                    return;
+                }
+
+                const recentResponses = data.responses.slice(-5).reverse();
+                
+                let html = `
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Time</th>
+                                <th>Current - Health</th>
+                                <th>Current - Emotional</th>
+                                <th>Current - Tech</th>
+                                <th>Future - Health</th>
+                                <th>Future - Emotional</th>
+                                <th>Future - Tech</th>
+                            </tr>
+                        </thead>
+                        <tbody>
                 `;
-            });
-            
-            html += '</tbody></table>';
-            container.innerHTML = html;
+                
+                recentResponses.forEach(response => {
+                    const date = new Date(response.timestamp);
+                    const timeString = date.toLocaleString();
+                    
+                    html += `
+                        <tr>
+                            <td>${timeString}</td>
+                            <td>${response.current[0]}</td>
+                            <td>${response.current[1]}</td>
+                            <td>${response.current[2]}</td>
+                            <td>${response.future[0]}</td>
+                            <td>${response.future[1]}</td>
+                            <td>${response.future[2]}</td>
+                        </tr>
+                    `;
+                });
+                
+                html += '</tbody></table>';
+                container.innerHTML = html;
+            } catch (e) {
+                console.error('Error displaying recent responses:', e);
+                document.getElementById('recentResponses').innerHTML = '<p>Error loading data.</p>';
+            }
         }
 
         // Download Excel file
         function downloadExcelFile() {
-            const data = JSON.parse(localStorage.getItem('surveyData'));
-            
-            // Prepare worksheet data
-            const worksheetData = [
-                ['Timestamp', 'Current_Health', 'Current_Emotional', 'Current_Tech', 
-                 'Future_Health', 'Future_Emotional', 'Future_Tech']
-            ];
-            
-            data.responses.forEach(response => {
-                worksheetData.push([
-                    response.timestamp,
-                    response.current[0],
-                    response.current[1],
-                    response.current[2],
-                    response.future[0],
-                    response.future[1],
-                    response.future[2]
-                ]);
-            });
-            
-            // Create workbook and worksheet
-            const wb = XLSX.utils.book_new();
-            const ws = XLSX.utils.aoa_to_sheet(worksheetData);
-            
-            // Add worksheet to workbook
-            XLSX.utils.book_append_sheet(wb, ws, 'Survey Responses');
-            
-            // Generate Excel file and download
-            XLSX.writeFile(wb, `survey_data_${new Date().toISOString().split('T')[0]}.xlsx`);
+            try {
+                const data = JSON.parse(localStorage.getItem('surveyData'));
+                
+                if (!data || !data.responses || data.responses.length === 0) {
+                    alert('No data available to download.');
+                    return;
+                }
+                
+                // Prepare worksheet data
+                const worksheetData = [
+                    ['Timestamp', 'Current_Health', 'Current_Emotional', 'Current_Tech', 
+                     'Future_Health', 'Future_Emotional', 'Future_Tech']
+                ];
+                
+                data.responses.forEach(response => {
+                    worksheetData.push([
+                        response.timestamp,
+                        response.current[0],
+                        response.current[1],
+                        response.current[2],
+                        response.future[0],
+                        response.future[1],
+                        response.future[2]
+                    ]);
+                });
+                
+                // Create workbook and worksheet
+                const wb = XLSX.utils.book_new();
+                const ws = XLSX.utils.aoa_to_sheet(worksheetData);
+                
+                // Add worksheet to workbook
+                XLSX.utils.book_append_sheet(wb, ws, 'Survey Responses');
+                
+                // Generate Excel file and download
+                XLSX.writeFile(wb, `survey_data_${new Date().toISOString().split('T')[0]}.xlsx`);
+            } catch (e) {
+                console.error('Error downloading Excel file:', e);
+                alert('Error downloading Excel file. Please try again.');
+            }
         }
 
         // Download CSV file
         function downloadCSVFile() {
-            const data = JSON.parse(localStorage.getItem('surveyData'));
-            
-            let csvContent = "Timestamp,Current_Health,Current_Emotional,Current_Tech,Future_Health,Future_Emotional,Future_Tech\n";
-            
-            data.responses.forEach(response => {
-                csvContent += `"${response.timestamp}",${response.current[0]},${response.current[1]},${response.current[2]},${response.future[0]},${response.future[1]},${response.future[2]}\n`;
-            });
-            
-            const encodedUri = encodeURI("data:text/csv;charset=utf-8," + csvContent);
-            const link = document.createElement("a");
-            link.setAttribute("href", encodedUri);
-            link.setAttribute("download", `survey_data_${new Date().toISOString().split('T')[0]}.csv`);
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+            try {
+                const data = JSON.parse(localStorage.getItem('surveyData'));
+                
+                if (!data || !data.responses || data.responses.length === 0) {
+                    alert('No data available to download.');
+                    return;
+                }
+                
+                let csvContent = "Timestamp,Current_Health,Current_Emotional,Current_Tech,Future_Health,Future_Emotional,Future_Tech\n";
+                
+                data.responses.forEach(response => {
+                    csvContent += `"${response.timestamp}",${response.current[0]},${response.current[1]},${response.current[2]},${response.future[0]},${response.future[1]},${response.future[2]}\n`;
+                });
+                
+                const encodedUri = encodeURI("data:text/csv;charset=utf-8," + csvContent);
+                const link = document.createElement("a");
+                link.setAttribute("href", encodedUri);
+                link.setAttribute("download", `survey_data_${new Date().toISOString().split('T')[0]}.csv`);
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            } catch (e) {
+                console.error('Error downloading CSV file:', e);
+                alert('Error downloading CSV file. Please try again.');
+            }
         }
 
         // Add sample data for demonstration
         function addSampleData() {
-            const data = JSON.parse(localStorage.getItem('surveyData'));
-            
-            for (let i = 0; i < 3; i++) {
-                const health = Math.floor(Math.random() * 30 + 30);
-                const emotional = Math.floor(Math.random() * 30 + 30);
-                const tech = 100 - health - emotional;
+            try {
+                let data = JSON.parse(localStorage.getItem('surveyData'));
+                if (!data || !data.responses) {
+                    data = { responses: [] };
+                }
                 
-                const futureHealth = Math.floor(Math.random() * 20 + 15);
-                const futureEmotional = Math.floor(Math.random() * 20 + 15);
-                const futureTech = 100 - futureHealth - futureEmotional;
+                for (let i = 0; i < 3; i++) {
+                    const health = Math.floor(Math.random() * 30 + 30);
+                    const emotional = Math.floor(Math.random() * 30 + 30);
+                    const tech = 100 - health - emotional;
+                    
+                    const futureHealth = Math.floor(Math.random() * 20 + 15);
+                    const futureEmotional = Math.floor(Math.random() * 20 + 15);
+                    const futureTech = 100 - futureHealth - futureEmotional;
+                    
+                    data.responses.push({
+                        timestamp: new Date(Date.now() - i * 300000).toISOString(),
+                        current: [health, emotional, tech],
+                        future: [futureHealth, futureEmotional, futureTech]
+                    });
+                }
                 
-                data.responses.push({
-                    timestamp: new Date(Date.now() - i * 300000).toISOString(),
-                    current: [health, emotional, tech],
-                    future: [futureHealth, futureEmotional, futureTech]
-                });
+                localStorage.setItem('surveyData', JSON.stringify(data));
+                updateResponseCount();
+                displayRecentResponses();
+                alert('3 sample responses added!');
+            } catch (e) {
+                console.error('Error adding sample data:', e);
+                alert('Error adding sample data. Please try again.');
             }
-            
-            localStorage.setItem('surveyData', JSON.stringify(data));
-            updateResponseCount();
-            displayRecentResponses();
-            alert('3 sample responses added!');
         }
 
         // Clear all data
@@ -612,14 +665,16 @@
         });
 
         // Initialize
-        initializeStorage();
-        updateResponseCount();
-        sliders.forEach(sliderId => {
-            const valueId = `${sliderId}_value`;
-            updateSliderDisplay(sliderId, valueId);
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeStorage();
+            updateResponseCount();
+            sliders.forEach(sliderId => {
+                const valueId = `${sliderId}_value`;
+                updateSliderDisplay(sliderId, valueId);
+            });
+            updateTotalDisplay();
+            displayRecentResponses();
         });
-        updateTotalDisplay();
-        displayRecentResponses();
     </script>
 </body>
 </html>
