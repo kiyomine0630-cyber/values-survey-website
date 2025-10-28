@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Value Survey - Now vs. 2075</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-chart-ternary@1.0.0"></script>
     <style>
         * {
             margin: 0;
@@ -167,18 +168,27 @@
             padding: 20px;
             border-radius: 10px;
             border: 2px solid #e9ecef;
+            text-align: center;
         }
         
         .chart-section h3 {
-            text-align: center;
             margin-bottom: 15px;
             color: #2c3e50;
         }
         
         .chart-container {
             position: relative;
-            height: 300px;
+            height: 400px;
             width: 100%;
+            margin: 0 auto;
+        }
+        
+        .ternary-legend {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 10px;
+            font-size: 0.9em;
+            color: #666;
         }
         
         .response-stats {
@@ -221,6 +231,21 @@
             margin: 10px 0;
             border-left: 4px solid #1abc9c;
         }
+
+        /* 自定义三元图样式 */
+        .ternary-plot {
+            width: 100%;
+            height: 400px;
+            position: relative;
+        }
+        
+        .ternary-point {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+        }
     </style>
 </head>
 <body>
@@ -232,6 +257,7 @@
         
         <div class="content">
             <div class="anonymous-notice">
+                <strong>🔒 匿名调查：</strong> 您的回答将完全匿名，仅用于整体分析。
             </div>
 
             <div class="instructions">
@@ -344,15 +370,25 @@
                 <div class="charts-container">
                     <div class="chart-section">
                         <h3>🕐 Current Values Distribution</h3>
-                        <div class="chart-container">
-                            <canvas id="currentTernaryChart"></canvas>
+                        <div class="chart-container" id="currentTernaryContainer">
+                            <!-- 三元图将通过JavaScript动态生成 -->
+                        </div>
+                        <div class="ternary-legend">
+                            <span>🏥 Health</span>
+                            <span>💖 Emotional</span>
+                            <span>🤖 Tech</span>
                         </div>
                     </div>
                     
                     <div class="chart-section">
                         <h3>🚀 2075 Values Distribution</h3>
-                        <div class="chart-container">
-                            <canvas id="futureTernaryChart"></canvas>
+                        <div class="chart-container" id="futureTernaryContainer">
+                            <!-- 三元图将通过JavaScript动态生成 -->
+                        </div>
+                        <div class="ternary-legend">
+                            <span>🏥 Health</span>
+                            <span>💖 Emotional</span>
+                            <span>🤖 Tech</span>
                         </div>
                     </div>
                 </div>
@@ -364,8 +400,9 @@
             </div>
 
             <div class="ternary-explanation">
-                <h4>📈 Ternary Plot</h4>
-                <p>Your responses will be used for generating <strong>Ternary Plot</strong>, to demonstrate the relative materiality of 3 values.</p>
+                <h4>📈 About Ternary Plots</h4>
+                <p>Ternary plots visualize the relative proportions of three variables that sum to a constant (100 points). Each point's position shows the balance between the three values.</p>
+                <p>Corners represent 100% focus on one value, edges represent equal focus on two values, and center represents equal balance among all three.</p>
             </div>
         </div>
     </div>
@@ -374,7 +411,6 @@
         // Initialize data storage
         function initializeStorage() {
             if (!localStorage.getItem('surveyData')) {
-                // Add some sample data for demonstration
                 const sampleData = {
                     current: [
                         [40, 35, 25],
@@ -394,6 +430,53 @@
                 };
                 localStorage.setItem('surveyData', JSON.stringify(sampleData));
             }
+        }
+
+        // Convert ternary coordinates to Cartesian coordinates
+        function ternaryToCartesian(a, b, c) {
+            // a = Health, b = Emotional, c = Tech
+            const x = (2 * b + a) / 2;
+            const y = c;
+            return { x: x / 100 * 300 + 50, y: 350 - y / 100 * 300 }; // Scale and position
+        }
+
+        // Create custom ternary plot
+        function createTernaryPlot(containerId, data, title) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = `
+                <svg width="100%" height="100%" viewBox="0 0 400 400" class="ternary-plot">
+                    <!-- 三角形边框 -->
+                    <polygon points="50,350 200,50 350,350" fill="none" stroke="#ddd" stroke-width="2"/>
+                    
+                    <!-- 网格线 -->
+                    <line x1="125" y1="275" x2="200" y2="125" stroke="#f0f0f0" stroke-width="1"/>
+                    <line x1="200" y1="125" x2="275" y2="275" stroke="#f0f0f0" stroke-width="1"/>
+                    <line x1="275" y1="275" x2="125" y2="275" stroke="#f0f0f0" stroke-width="1"/>
+                    
+                    <!-- 顶点标签 -->
+                    <text x="200" y="30" text-anchor="middle" fill="#3498db" font-weight="bold">Health</text>
+                    <text x="370" y="370" text-anchor="end" fill="#e74c3c" font-weight="bold">Emotional</text>
+                    <text x="30" y="370" text-anchor="start" fill="#2ecc71" font-weight="bold">Tech</text>
+                    
+                    <!-- 数据点 -->
+                    ${data.map(point => {
+                        const coords = ternaryToCartesian(point[0], point[1], point[2]);
+                        const color = title.includes('Current') ? '#3498db' : '#e74c3c';
+                        return `<circle cx="${coords.x}" cy="${coords.y}" r="4" fill="${color}" class="ternary-point">
+                                <title>Health: ${point[0]}, Emotional: ${point[1]}, Tech: ${point[2]}</title>
+                            </circle>`;
+                    }).join('')}
+                    
+                    <!-- 新提交的点（高亮显示） -->
+                    ${data.length > 0 ? `
+                        <circle cx="${ternaryToCartesian(data[data.length-1][0], data[data.length-1][1], data[data.length-1][2]).x}" 
+                                cy="${ternaryToCartesian(data[data.length-1][0], data[data.length-1][1], data[data.length-1][2]).y}" 
+                                r="6" fill="gold" stroke="#333" stroke-width="2">
+                            <title>Your Response - Health: ${data[data.length-1][0]}, Emotional: ${data[data.length-1][1]}, Tech: ${data[data.length-1][2]}</title>
+                        </circle>
+                    ` : ''}
+                </svg>
+            `;
         }
 
         // Update slider display values
@@ -460,116 +543,11 @@
             document.getElementById('responseCount').textContent = data.current.length;
         }
 
-        // Create ternary plots using scatter charts
+        // Create ternary plots
         function createTernaryPlots() {
             const data = JSON.parse(localStorage.getItem('surveyData'));
-            
-            // Convert to scatter plot data (simulating ternary coordinates)
-            const currentPoints = data.current.map(point => ({
-                x: point[0] + point[1] * 0.5,  // Simulated x coordinate
-                y: point[2] + point[1] * 0.5   // Simulated y coordinate
-            }));
-            
-            const futurePoints = data.future.map(point => ({
-                x: point[0] + point[1] * 0.5,
-                y: point[2] + point[1] * 0.5
-            }));
-
-            // Current values chart
-            const currentCtx = document.getElementById('currentTernaryChart').getContext('2d');
-            if (window.currentChart) {
-                window.currentChart.destroy();
-            }
-            
-            window.currentChart = new Chart(currentCtx, {
-                type: 'scatter',
-                data: {
-                    datasets: [{
-                        label: 'Responses',
-                        data: currentPoints,
-                        backgroundColor: 'rgba(52, 152, 219, 0.7)',
-                        borderColor: 'rgba(52, 152, 219, 1)',
-                        borderWidth: 1,
-                        pointRadius: 6
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        x: {
-                            title: { display: true, text: 'Health + Emotional' },
-                            min: 0,
-                            max: 150
-                        },
-                        y: {
-                            title: { display: true, text: 'Tech + Emotional' },
-                            min: 0,
-                            max: 150
-                        }
-                    },
-                    plugins: {
-                        title: { display: true, text: 'Current Values Distribution' },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    const index = context.dataIndex;
-                                    const point = data.current[index];
-                                    return `Health: ${point[0]}, Emotional: ${point[1]}, Tech: ${point[2]}`;
-                                }
-                            }
-                        }
-                    }
-                }
-            });
-
-            // Future values chart
-            const futureCtx = document.getElementById('futureTernaryChart').getContext('2d');
-            if (window.futureChart) {
-                window.futureChart.destroy();
-            }
-            
-            window.futureChart = new Chart(futureCtx, {
-                type: 'scatter',
-                data: {
-                    datasets: [{
-                        label: 'Responses',
-                        data: futurePoints,
-                        backgroundColor: 'rgba(231, 76, 60, 0.7)',
-                        borderColor: 'rgba(231, 76, 60, 1)',
-                        borderWidth: 1,
-                        pointRadius: 6
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        x: {
-                            title: { display: true, text: 'Health + Emotional' },
-                            min: 0,
-                            max: 150
-                        },
-                        y: {
-                            title: { display: true, text: 'Tech + Emotional' },
-                            min: 0,
-                            max: 150
-                        }
-                    },
-                    plugins: {
-                        title: { display: true, text: '2075 Values Distribution' },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    const index = context.dataIndex;
-                                    const point = data.future[index];
-                                    return `Health: ${point[0]}, Emotional: ${point[1]}, Tech: ${point[2]}`;
-                                }
-                            }
-                        }
-                    }
-                }
-            });
+            createTernaryPlot('currentTernaryContainer', data.current, 'Current Values');
+            createTernaryPlot('futureTernaryContainer', data.future, 'Future Values');
         }
 
         // Download all data
@@ -593,7 +571,6 @@
         function addSampleData() {
             const data = JSON.parse(localStorage.getItem('surveyData'));
             
-            // Add 5 more sample responses
             for (let i = 0; i < 5; i++) {
                 const health = Math.floor(Math.random() * 30 + 30);
                 const emotional = Math.floor(Math.random() * 30 + 30);
@@ -657,8 +634,7 @@
             updateSliderDisplay(sliderId, valueId);
         });
         updateTotalDisplay();
-        // Initialize charts only after page load
-        setTimeout(createTernaryPlots, 100);
+        createTernaryPlots();
     </script>
 </body>
 </html>
