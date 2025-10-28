@@ -4,8 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Value Survey - Now vs. 2075</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-chart-ternary@1.0.0"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -156,44 +155,9 @@
             margin-top: 20px;
         }
         
-        .charts-container {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 30px;
-            margin: 30px 0;
-        }
-        
-        .chart-section {
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            border: 2px solid #e9ecef;
-            text-align: center;
-        }
-        
-        .chart-section h3 {
-            margin-bottom: 15px;
-            color: #2c3e50;
-        }
-        
-        .chart-container {
-            position: relative;
-            height: 400px;
-            width: 100%;
-            margin: 0 auto;
-        }
-        
-        .ternary-legend {
-            display: flex;
-            justify-content: space-around;
-            margin-top: 10px;
-            font-size: 0.9em;
-            color: #666;
-        }
-        
         .response-stats {
             background: white;
-            padding: 15px;
+            padding: 20px;
             border-radius: 8px;
             margin: 20px 0;
             border: 2px solid #3498db;
@@ -208,42 +172,50 @@
             background: #9b59b6;
             color: white;
             border: none;
-            padding: 10px 20px;
+            padding: 12px 25px;
             border-radius: 5px;
             cursor: pointer;
             margin: 0 10px;
             font-size: 1em;
+            transition: background 0.3s;
         }
         
-        .ternary-explanation {
-            background: #fff3cd;
-            padding: 15px;
+        .action-btn:hover {
+            background: #8e44ad;
+        }
+        
+        .data-preview {
+            background: #f8f9fa;
+            padding: 20px;
             border-radius: 8px;
-            margin-top: 20px;
-            border-left: 4px solid #ffc107;
+            margin: 20px 0;
+            border: 1px solid #dee2e6;
         }
         
-        .anonymous-notice {
-            background: #e8f6f3;
-            padding: 10px;
-            border-radius: 5px;
-            text-align: center;
-            margin: 10px 0;
-            border-left: 4px solid #1abc9c;
+        .data-preview h4 {
+            color: #2c3e50;
+            margin-bottom: 15px;
         }
-
-        .ternary-plot {
+        
+        .data-table {
             width: 100%;
-            height: 400px;
-            position: relative;
+            border-collapse: collapse;
+            margin-top: 10px;
         }
         
-        .ternary-point {
-            position: absolute;
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            transform: translate(-50%, -50%);
+        .data-table th, .data-table td {
+            border: 1px solid #dee2e6;
+            padding: 8px 12px;
+            text-align: center;
+        }
+        
+        .data-table th {
+            background: #3498db;
+            color: white;
+        }
+        
+        .data-table tr:nth-child(even) {
+            background: #f8f9fa;
         }
     </style>
 </head>
@@ -255,9 +227,6 @@
         </div>
         
         <div class="content">
-            <div class="anonymous-notice">
-            </div>
-
             <div class="instructions">
                 <h3>🔍 Introduction</h3>
                 <p>Please evaluate the relative materiality of 3 following values in <strong>previous society and 2075</strong>. </p>
@@ -365,41 +334,19 @@
                     <p>Total anonymous responses collected: <strong id="responseCount">0</strong></p>
                 </div>
 
-                <div class="charts-container">
-                    <div class="chart-section">
-                        <h3>🕐 Current Values Distribution</h3>
-                        <div class="chart-container" id="currentTernaryContainer">
-                            <!-- The ternary plot will be dynamically generated through JavaScript. -->
-                        </div>
-                        <div class="ternary-legend">
-                            <span> Health</span>
-                            <span> Emotional</span>
-                            <span> Tech</span>
-                        </div>
-                    </div>
-                    
-                    <div class="chart-section">
-                        <h3>🚀 2075 Values Distribution</h3>
-                        <div class="chart-container" id="futureTernaryContainer">
-                            <!-- The ternary plot will be dynamically generated through JavaScript -->
-                        </div>
-                        <div class="ternary-legend">
-                            <span> Health</span>
-                            <span> Emotional</span>
-                            <span> Tech</span>
-                        </div>
+                <div class="data-preview">
+                    <h4>📋 Recent Responses Preview</h4>
+                    <div id="recentResponses">
+                        <!-- Recent responses will be displayed here -->
                     </div>
                 </div>
 
                 <div class="data-actions">
-                    <button onclick="downloadAllData()" class="action-btn">📥 Download All Data</button>
+                    <button onclick="downloadExcelFile()" class="action-btn">📊 Download Excel File</button>
+                    <button onclick="downloadCSVFile()" class="action-btn">📄 Download CSV File</button>
                     <button onclick="addSampleData()" class="action-btn">🎯 Add Sample Data</button>
+                    <button onclick="clearAllData()" class="action-btn">🗑️ Clear All Data</button>
                 </div>
-            </div>
-
-            <div class="ternary-explanation">
-                <h4> Ternary Plots</h4>
-                <p>Your response will be collected for generating <STRONG> Ternary Plots and analysing the research</STRONG>.</p>
             </div>
         </div>
     </div>
@@ -409,147 +356,28 @@
         function initializeStorage() {
             if (!localStorage.getItem('surveyData')) {
                 const sampleData = {
-                    current: [
-                        [40, 35, 25],
-                        [50, 30, 20],
-                        [35, 40, 25],
-                        [45, 25, 30],
-                        [30, 45, 25]
-                    ],
-                    future: [
-                        [25, 25, 50],
-                        [20, 30, 50],
-                        [30, 20, 50],
-                        [15, 35, 50],
-                        [25, 15, 60]
-                    ],
-                    timestamps: Array(5).fill().map((_, i) => new Date(Date.now() - i * 60000).toISOString())
+                    responses: [
+                        {
+                            timestamp: new Date().toISOString(),
+                            current: [40, 35, 25],
+                            future: [25, 25, 50]
+                        },
+                        {
+                            timestamp: new Date(Date.now() - 60000).toISOString(),
+                            current: [50, 30, 20],
+                            future: [20, 30, 50]
+                        },
+                        {
+                            timestamp: new Date(Date.now() - 120000).toISOString(),
+                            current: [35, 40, 25],
+                            future: [30, 20, 50]
+                        }
+                    ]
                 };
                 localStorage.setItem('surveyData', JSON.stringify(sampleData));
             }
         }
 
- // Corrected ternary coordinate conversion function
-function ternaryToCartesian(a, b, c) {
-    // Normalize to ensure points stay within triangle
-    const sum = a + b + c;
-    const health = a / sum;
-    const emotional = b / sum;
-    const tech = c / sum;
-    
-    // Correct ternary coordinate transformation for equilateral triangle
-    // Vertices: 
-    // - Top: Health (1,0,0)
-    // - Bottom-left: Tech (0,0,1)  
-    // - Bottom-right: Emotional (0,1,0)
-    const x = 0.5 * (2 * emotional + health);
-    const y = tech;
-    
-    // Convert to SVG coordinates for equilateral triangle
-    const sideLength = 300; // Side length of the triangle
-    const height = sideLength * Math.sqrt(3) / 2;
-    
-    const svgX = 50 + x * sideLength;
-    const svgY = 350 - y * height;
-    
-    return { x: svgX, y: svgY };
-}
-
-// Improved ternary plot creation function
-function createTernaryPlot(containerId, data, title) {
-    const container = document.getElementById(containerId);
-    
-    // Equilateral triangle vertices
-    const sideLength = 300;
-    const height = sideLength * Math.sqrt(3) / 2;
-    
-    const top = { x: 200, y: 350 - height };        // Health (100,0,0)
-    const bottomLeft = { x: 50, y: 350 };           // Tech (0,0,100)
-    const bottomRight = { x: 350, y: 350 };         // Emotional (0,100,0)
-
-    // Create grid lines
-    const gridLines = [];
-    const gridValues = [0.2, 0.4, 0.6, 0.8];
-    
-    gridValues.forEach(value => {
-        // Lines parallel to bottom (constant Health)
-        const h1 = {
-            x: top.x + (bottomLeft.x - top.x) * value,
-            y: top.y + (bottomLeft.y - top.y) * value
-        };
-        const h2 = {
-            x: top.x + (bottomRight.x - top.x) * value,
-            y: top.y + (bottomRight.y - top.y) * value
-        };
-        gridLines.push(`<line x1="${h1.x}" y1="${h1.y}" x2="${h2.x}" y2="${h2.y}" stroke="#f0f0f0" stroke-width="1"/>`);
-        
-        // Lines parallel to left side (constant Emotional)
-        const e1 = {
-            x: bottomLeft.x + (top.x - bottomLeft.x) * value,
-            y: bottomLeft.y + (top.y - bottomLeft.y) * value
-        };
-        const e2 = {
-            x: bottomLeft.x + (bottomRight.x - bottomLeft.x) * value,
-            y: bottomLeft.y + (bottomRight.y - bottomLeft.y) * value
-        };
-        gridLines.push(`<line x1="${e1.x}" y1="${e1.y}" x2="${e2.x}" y2="${e2.y}" stroke="#f0f0f0" stroke-width="1"/>`);
-        
-        // Lines parallel to right side (constant Tech)
-        const t1 = {
-            x: bottomRight.x + (top.x - bottomRight.x) * value,
-            y: bottomRight.y + (top.y - bottomRight.y) * value
-        };
-        const t2 = {
-            x: bottomRight.x + (bottomLeft.x - bottomRight.x) * value,
-            y: bottomRight.y + (bottomLeft.y - bottomRight.y) * value
-        };
-        gridLines.push(`<line x1="${t1.x}" y1="${t1.y}" x2="${t2.x}" y2="${t2.y}" stroke="#f0f0f0" stroke-width="1"/>`);
-    });
-
-    container.innerHTML = `
-        <svg width="100%" height="100%" viewBox="0 0 400 400" class="ternary-plot">
-            <!-- Grid lines -->
-            ${gridLines.join('')}
-            
-            <!-- Triangle border -->
-            <polygon points="${top.x},${top.y} ${bottomLeft.x},${bottomLeft.y} ${bottomRight.x},${bottomRight.y}" 
-                     fill="none" stroke="#333" stroke-width="2"/>
-            
-            <!-- Vertex labels -->
-            <text x="${top.x}" y="${top.y - 10}" text-anchor="middle" fill="#3498db" font-weight="bold" font-size="14">Health</text>
-            <text x="${bottomRight.x + 15}" y="${bottomRight.y + 5}" text-anchor="start" fill="#e74c3c" font-weight="bold" font-size="14">Emotional</text>
-            <text x="${bottomLeft.x - 15}" y="${bottomLeft.y + 5}" text-anchor="end" fill="#2ecc71" font-weight="bold" font-size="14">Tech</text>
-            
-            <!-- Grid value labels -->
-            <text x="${(top.x + bottomLeft.x) / 2}" y="${(top.y + bottomLeft.y) / 2 + 15}" text-anchor="middle" fill="#999" font-size="10">20%</text>
-            <text x="${(top.x + bottomRight.x) / 2}" y="${(top.y + bottomRight.y) / 2 + 15}" text-anchor="middle" fill="#999" font-size="10">20%</text>
-            
-            <!-- Data points -->
-            ${data.map(point => {
-                const coords = ternaryToCartesian(point[0], point[1], point[2]);
-                const color = title.includes('Current') ? '#3498db' : '#e74c3c';
-                
-                return `<circle cx="${coords.x}" cy="${coords.y}" r="4" fill="${color}" class="ternary-point">
-                        <title>Health: ${point[0]}%, Emotional: ${point[1]}%, Tech: ${point[2]}%</title>
-                    </circle>`;
-            }).join('')}
-            
-            <!-- Highlight latest submitted point -->
-            ${data.length > 0 ? `
-                <circle cx="${ternaryToCartesian(data[data.length-1][0], data[data.length-1][1], data[data.length-1][2]).x}" 
-                        cy="${ternaryToCartesian(data[data.length-1][0], data[data.length-1][1], data[data.length-1][2]).y}" 
-                        r="6" fill="gold" stroke="#333" stroke-width="2">
-                    <title>Your Response - Health: ${data[data.length-1][0]}%, Emotional: ${data[data.length-1][1]}%, Tech: ${data[data.length-1][2]}%</title>
-                </circle>
-            ` : ''}
-            
-            <!-- Test points to verify coordinates -->
-            <circle cx="${top.x}" cy="${top.y}" r="3" fill="red"/>
-            <circle cx="${bottomLeft.x}" cy="${bottomLeft.y}" r="3" fill="green"/>
-            <circle cx="${bottomRight.x}" cy="${bottomRight.y}" r="3" fill="blue"/>
-        </svg>
-    `;
-}
         // Update slider display values
         function updateSliderDisplay(sliderId, valueId) {
             const slider = document.getElementById(sliderId);
@@ -586,6 +414,7 @@ function createTernaryPlot(containerId, data, title) {
             const data = JSON.parse(localStorage.getItem('surveyData'));
             
             const newResponse = {
+                timestamp: new Date().toISOString(),
                 current: [
                     parseInt(document.getElementById('health_current').value),
                     parseInt(document.getElementById('emotional_current').value),
@@ -595,72 +424,157 @@ function createTernaryPlot(containerId, data, title) {
                     parseInt(document.getElementById('health_future').value),
                     parseInt(document.getElementById('emotional_future').value),
                     parseInt(document.getElementById('tech_future').value)
-                ],
-                timestamp: new Date().toISOString()
+                ]
             };
 
-            data.current.push(newResponse.current);
-            data.future.push(newResponse.future);
-            data.timestamps.push(newResponse.timestamp);
-
+            data.responses.push(newResponse);
             localStorage.setItem('surveyData', JSON.stringify(data));
             updateResponseCount();
-            createTernaryPlots();
+            displayRecentResponses();
         }
 
         // Update response count
         function updateResponseCount() {
             const data = JSON.parse(localStorage.getItem('surveyData'));
-            document.getElementById('responseCount').textContent = data.current.length;
+            document.getElementById('responseCount').textContent = data.responses.length;
         }
 
-        // Create ternary plots
-        function createTernaryPlots() {
+        // Display recent responses
+        function displayRecentResponses() {
             const data = JSON.parse(localStorage.getItem('surveyData'));
-            createTernaryPlot('currentTernaryContainer', data.current, 'Current Values');
-            createTernaryPlot('futureTernaryContainer', data.future, 'Future Values');
-        }
-
-        // Download all data
-        function downloadAllData() {
-            const data = JSON.parse(localStorage.getItem('surveyData'));
-            const csvContent = "data:text/csv;charset=utf-8," 
-                + "Type,Health,Emotional,Tech\n"
-                + data.current.map((point, i) => `Current,${point[0]},${point[1]},${point[2]}`).join('\n')
-                + '\n'
-                + data.future.map((point, i) => `Future,${point[0]},${point[1]},${point[2]}`).join('\n');
+            const container = document.getElementById('recentResponses');
             
-            const encodedUri = encodeURI(csvContent);
+            const recentResponses = data.responses.slice(-5).reverse();
+            
+            if (recentResponses.length === 0) {
+                container.innerHTML = '<p>No responses yet.</p>';
+                return;
+            }
+
+            let html = `
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Time</th>
+                            <th>Current - Health</th>
+                            <th>Current - Emotional</th>
+                            <th>Current - Tech</th>
+                            <th>Future - Health</th>
+                            <th>Future - Emotional</th>
+                            <th>Future - Tech</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+            
+            recentResponses.forEach(response => {
+                const date = new Date(response.timestamp);
+                const timeString = date.toLocaleString();
+                
+                html += `
+                    <tr>
+                        <td>${timeString}</td>
+                        <td>${response.current[0]}</td>
+                        <td>${response.current[1]}</td>
+                        <td>${response.current[2]}</td>
+                        <td>${response.future[0]}</td>
+                        <td>${response.future[1]}</td>
+                        <td>${response.future[2]}</td>
+                    </tr>
+                `;
+            });
+            
+            html += '</tbody></table>';
+            container.innerHTML = html;
+        }
+
+        // Download Excel file
+        function downloadExcelFile() {
+            const data = JSON.parse(localStorage.getItem('surveyData'));
+            
+            // Prepare worksheet data
+            const worksheetData = [
+                ['Timestamp', 'Current_Health', 'Current_Emotional', 'Current_Tech', 
+                 'Future_Health', 'Future_Emotional', 'Future_Tech']
+            ];
+            
+            data.responses.forEach(response => {
+                worksheetData.push([
+                    response.timestamp,
+                    response.current[0],
+                    response.current[1],
+                    response.current[2],
+                    response.future[0],
+                    response.future[1],
+                    response.future[2]
+                ]);
+            });
+            
+            // Create workbook and worksheet
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.aoa_to_sheet(worksheetData);
+            
+            // Add worksheet to workbook
+            XLSX.utils.book_append_sheet(wb, ws, 'Survey Responses');
+            
+            // Generate Excel file and download
+            XLSX.writeFile(wb, `survey_data_${new Date().toISOString().split('T')[0]}.xlsx`);
+        }
+
+        // Download CSV file
+        function downloadCSVFile() {
+            const data = JSON.parse(localStorage.getItem('surveyData'));
+            
+            let csvContent = "Timestamp,Current_Health,Current_Emotional,Current_Tech,Future_Health,Future_Emotional,Future_Tech\n";
+            
+            data.responses.forEach(response => {
+                csvContent += `"${response.timestamp}",${response.current[0]},${response.current[1]},${response.current[2]},${response.future[0]},${response.future[1]},${response.future[2]}\n`;
+            });
+            
+            const encodedUri = encodeURI("data:text/csv;charset=utf-8," + csvContent);
             const link = document.createElement("a");
             link.setAttribute("href", encodedUri);
-            link.setAttribute("download", "survey_data.csv");
+            link.setAttribute("download", `survey_data_${new Date().toISOString().split('T')[0]}.csv`);
             document.body.appendChild(link);
             link.click();
+            document.body.removeChild(link);
         }
 
         // Add sample data for demonstration
         function addSampleData() {
             const data = JSON.parse(localStorage.getItem('surveyData'));
             
-            for (let i = 0; i < 5; i++) {
+            for (let i = 0; i < 3; i++) {
                 const health = Math.floor(Math.random() * 30 + 30);
                 const emotional = Math.floor(Math.random() * 30 + 30);
                 const tech = 100 - health - emotional;
-                
-                data.current.push([health, emotional, tech]);
                 
                 const futureHealth = Math.floor(Math.random() * 20 + 15);
                 const futureEmotional = Math.floor(Math.random() * 20 + 15);
                 const futureTech = 100 - futureHealth - futureEmotional;
                 
-                data.future.push([futureHealth, futureEmotional, futureTech]);
-                data.timestamps.push(new Date().toISOString());
+                data.responses.push({
+                    timestamp: new Date(Date.now() - i * 300000).toISOString(),
+                    current: [health, emotional, tech],
+                    future: [futureHealth, futureEmotional, futureTech]
+                });
             }
             
             localStorage.setItem('surveyData', JSON.stringify(data));
             updateResponseCount();
-            createTernaryPlots();
-            alert('5 sample responses added!');
+            displayRecentResponses();
+            alert('3 sample responses added!');
+        }
+
+        // Clear all data
+        function clearAllData() {
+            if (confirm('Are you sure you want to clear all data? This action cannot be undone.')) {
+                localStorage.removeItem('surveyData');
+                initializeStorage();
+                updateResponseCount();
+                displayRecentResponses();
+                alert('All data has been cleared.');
+            }
         }
 
         // Event listeners
@@ -705,7 +619,7 @@ function createTernaryPlot(containerId, data, title) {
             updateSliderDisplay(sliderId, valueId);
         });
         updateTotalDisplay();
-        createTernaryPlots();
+        displayRecentResponses();
     </script>
 </body>
 </html>
