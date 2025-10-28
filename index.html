@@ -173,19 +173,19 @@
         <div class="content">
             <div class="instructions">
                 <h3>🔍 Introduction</h3>
-                <p>Please evaluate the relative materiality of 3 following values in <strong>previous society and </strong> 2075. </p>
+                <p>Please evaluate the relative materiality of 3 following values in <strong>previous society and 2075</strong>. </p>
                 <p>Each value is assigned a score ranging from 0 to 100 points, and the sum of each part must be 100 points.</p>
             </div>
 
             <form id="surveyForm">
-                <!-- Current values -->
+                <!-- Previous values -->
                 <div class="survey-section">
-                    <h2>🕐 当前社会价值观评估</h2>
-                    <p>请评估以下价值观在<strong>当前社会</strong>中的相对重要性：</p>
+                    <h2>🕐Previous Social Values Evaluation </h2>
+                    <p>Please evaluate the relative materiality of following values in<strong>Previous Society</strong>：</p>
                     
                     <div class="slider-group">
                         <div class="slider-container">
-                            <label for="health_current">💊 个人健康 (Physical Health)</label>
+                            <label for="health_current">Physical Health</label>
                             <input type="range" id="health_current" name="health_current" min="0" max="100" value="40">
                             <div class="value-display">
                                 <span>0</span>
@@ -195,7 +195,7 @@
                         </div>
                         
                         <div class="slider-container">
-                            <label for="emotional_current">❤️ 情感连接 (Emotional Connection)</label>
+                            <label for="emotional_current">Emotional Connection</label>
                             <input type="range" id="emotional_current" name="emotional_current" min="0" max="100" value="35">
                             <div class="value-display">
                                 <span>0</span>
@@ -205,7 +205,7 @@
                         </div>
                         
                         <div class="slider-container">
-                            <label for="tech_current">🤖 科技依赖 (Technology Dependency)</label>
+                            <label for="tech_current">Technology Dependency</label>
                             <input type="range" id="tech_current" name="tech_current" min="0" max="100" value="25">
                             <div class="value-display">
                                 <span>0</span>
@@ -216,18 +216,18 @@
                     </div>
                     
                     <div class="total-display">
-                        🎯 当前价值观总分: <span id="total_current">100</span>/100
+                        Total Value Score: <span id="total_current">100</span>/100
                     </div>
                 </div>
 
-                <!-- 2075年价值观 -->
+                <!-- 2075 Values -->
                 <div class="survey-section">
-                    <h2>🚀 2075年价值观预测</h2>
-                    <p>请预测以下价值观在<strong>2075年</strong>的相对重要性：</p>
+                    <h2>🚀 2075 Values Forecast</h2>
+                    <p>Please forecast the relative materiality of following values in the<strong>2075</strong>：</p>
                     
                     <div class="slider-group">
                         <div class="slider-container">
-                            <label for="health_future">💊 个人健康 (Physical Health)</label>
+                            <label for="health_future">Physical Health</label>
                             <input type="range" id="health_future" name="health_future" min="0" max="100" value="25">
                             <div class="value-display">
                                 <span>0</span>
@@ -237,7 +237,7 @@
                         </div>
                         
                         <div class="slider-container">
-                            <label for="emotional_future">❤️ 情感连接 (Emotional Connection)</label>
+                            <label for="emotional_future">Emotional Connection</label>
                             <input type="range" id="emotional_future" name="emotional_future" min="0" max="100" value="25">
                             <div class="value-display">
                                 <span>0</span>
@@ -247,7 +247,7 @@
                         </div>
                         
                         <div class="slider-container">
-                            <label for="tech_future">🤖 科技依赖 (Technology Dependency)</label>
+                            <label for="tech_future">Technology Dependency</label>
                             <input type="range" id="tech_future" name="tech_future" min="0" max="100" value="50">
                             <div class="value-display">
                                 <span>0</span>
@@ -258,14 +258,14 @@
                     </div>
                     
                     <div class="total-display">
-                        🎯 2075年价值观总分: <span id="total_future">100</span>/100
+                        Total score of values in 2075 <span id="total_future">100</span>/100
                     </div>
                 </div>
 
                 <div class="error" id="errorMessage">
-                    ❌ 请确保每个部分的总分都为100分！
+                    
                 </div>
-
+                        Please Make sure that the total score for each section is 100.
                 <button type="submit" class="submit-btn">提交问卷</button>
             </form>
 
