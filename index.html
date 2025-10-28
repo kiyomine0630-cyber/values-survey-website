@@ -331,7 +331,7 @@
                 
                 <div class="response-stats">
                     <h4>📈 Current Response Statistics</h4>
-                    <p>Total anonymous responses collected: <strong id="responseCount">0</strong></p>
+                    <p>Total responses collected: <strong id="responseCount">0</strong></p>
                 </div>
 
                 <div class="data-preview">
@@ -343,40 +343,10 @@
 
                 <div class="data-actions">
                     <button onclick="downloadExcelFile()" class="action-btn">📊 Download Excel File</button>
-                    <button onclick="downloadCSVFile()" class="action-btn">📄 Download CSV File</button>
-                    <button onclick="addSampleData()" class="action-btn">🎯 Add Sample Data</button>
-                    <button onclick="clearAllData()" class="action-btn">🗑️ Clear All Data</button>
                 </div>
             </div>
         </div>
     </div>
-
-    <script>
-        // Initialize data storage
-        function initializeStorage() {
-            if (!localStorage.getItem('surveyData')) {
-                const sampleData = {
-                    responses: [
-                        {
-                            timestamp: new Date().toISOString(),
-                            current: [40, 35, 25],
-                            future: [25, 25, 50]
-                        },
-                        {
-                            timestamp: new Date(Date.now() - 60000).toISOString(),
-                            current: [50, 30, 20],
-                            future: [20, 30, 50]
-                        },
-                        {
-                            timestamp: new Date(Date.now() - 120000).toISOString(),
-                            current: [35, 40, 25],
-                            future: [30, 20, 50]
-                        }
-                    ]
-                };
-                localStorage.setItem('surveyData', JSON.stringify(sampleData));
-            }
-        }
 
         // Update slider display values
         function updateSliderDisplay(sliderId, valueId) {
@@ -585,50 +555,6 @@
             }
         }
 
-        // Add sample data for demonstration
-        function addSampleData() {
-            try {
-                let data = JSON.parse(localStorage.getItem('surveyData'));
-                if (!data || !data.responses) {
-                    data = { responses: [] };
-                }
-                
-                for (let i = 0; i < 3; i++) {
-                    const health = Math.floor(Math.random() * 30 + 30);
-                    const emotional = Math.floor(Math.random() * 30 + 30);
-                    const tech = 100 - health - emotional;
-                    
-                    const futureHealth = Math.floor(Math.random() * 20 + 15);
-                    const futureEmotional = Math.floor(Math.random() * 20 + 15);
-                    const futureTech = 100 - futureHealth - futureEmotional;
-                    
-                    data.responses.push({
-                        timestamp: new Date(Date.now() - i * 300000).toISOString(),
-                        current: [health, emotional, tech],
-                        future: [futureHealth, futureEmotional, futureTech]
-                    });
-                }
-                
-                localStorage.setItem('surveyData', JSON.stringify(data));
-                updateResponseCount();
-                displayRecentResponses();
-                alert('3 sample responses added!');
-            } catch (e) {
-                console.error('Error adding sample data:', e);
-                alert('Error adding sample data. Please try again.');
-            }
-        }
-
-        // Clear all data
-        function clearAllData() {
-            if (confirm('Are you sure you want to clear all data? This action cannot be undone.')) {
-                localStorage.removeItem('surveyData');
-                initializeStorage();
-                updateResponseCount();
-                displayRecentResponses();
-                alert('All data has been cleared.');
-            }
-        }
 
         // Event listeners
         const sliders = [
