@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>价值观调查 - 现在与2075年</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 2.2em;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+        
+        .content {
+            padding: 30px;
+        }
+        
+        .instructions {
+            background: #e8f4fc;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            border-left: 4px solid #3498db;
+        }
+        
+        .instructions h3 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        
+        .survey-section {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+            border: 1px solid #e9ecef;
+        }
+        
+        .survey-section h2 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .slider-group {
+            margin: 20px 0;
+        }
+        
+        .slider-container {
+            margin: 15px 0;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #34495e;
+        }
+        
+        input[type="range"] {
+            width: 100%;
+            height: 8px;
+            border-radius: 4px;
+            background: #ddd;
+            outline: none;
+            margin: 10px 0;
+        }
+        
+        .value-display {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 5px;
+        }
+        
+        .total-display {
+            text-align: center;
+            font-size: 1.1em;
+            font-weight: bold;
+            color: #27ae60;
+            margin: 15px 0;
+            padding: 10px;
+            background: #d5f4e6;
+            border-radius: 5px;
+        }
+        
+        .error {
+            color: #e74c3c;
+            text-align: center;
+            margin: 10px 0;
+            display: none;
+        }
+        
+        .submit-btn {
+            background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.2em;
+            border-radius: 8px;
+            cursor: pointer;
+            display: block;
+            margin: 30px auto;
+            transition: transform 0.2s;
+        }
+        
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(39, 174, 96, 0.3);
+        }
+        
+        .success-message {
+            display: none;
+            background: #d5f4e6;
+            color: #27ae60;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            margin-top: 20px;
+        }
+        
+        .ternary-explanation {
+            background: #fff3cd;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            border-left: 4px solid #ffc107;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📊 价值观调查问卷</h1>
+            <p>探索现在与2075年的价值观变化</p>
+        </div>
+        
+        <div class="content">
+            <div class="instructions">
+                <h3>🔍 调查说明</h3>
+                <p>请评估以下三个价值观在<strong>当前社会</strong>和<strong>2075年</strong>的相对重要性。</p>
+                <p>每个价值观分配0-100分，每个部分的总和必须为100分。</p>
+            </div>
+
+            <form id="surveyForm">
+                <!-- 当前价值观 -->
+                <div class="survey-section">
+                    <h2>🕐 当前社会价值观评估</h2>
+                    <p>请评估以下价值观在<strong>当前社会</strong>中的相对重要性：</p>
+                    
+                    <div class="slider-group">
+                        <div class="slider-container">
+                            <label for="health_current">💊 个人健康 (Physical Health)</label>
+                            <input type="range" id="health_current" name="health_current" min="0" max="100" value="40">
+                            <div class="value-display">
+                                <span>0</span>
+                                <span id="health_current_value">40</span>
+                                <span>100</span>
+                            </div>
+                        </div>
+                        
+                        <div class="slider-container">
+                            <label for="emotional_current">❤️ 情感连接 (Emotional Connection)</label>
+                            <input type="range" id="emotional_current" name="emotional_current" min="0" max="100" value="35">
+                            <div class="value-display">
+                                <span>0</span>
+                                <span id="emotional_current_value">35</span>
+                                <span>100</span>
+                            </div>
+                        </div>
+                        
+                        <div class="slider-container">
+                            <label for="tech_current">🤖 科技依赖 (Technology Dependency)</label>
+                            <input type="range" id="tech_current" name="tech_current" min="0" max="100" value="25">
+                            <div class="value-display">
+                                <span>0</span>
+                                <span id="tech_current_value">25</span>
+                                <span>100</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="total-display">
+                        🎯 当前价值观总分: <span id="total_current">100</span>/100
+                    </div>
+                </div>
+
+                <!-- 2075年价值观 -->
+                <div class="survey-section">
+                    <h2>🚀 2075年价值观预测</h2>
+                    <p>请预测以下价值观在<strong>2075年</strong>的相对重要性：</p>
+                    
+                    <div class="slider-group">
+                        <div class="slider-container">
+                            <label for="health_future">💊 个人健康 (Physical Health)</label>
+                            <input type="range" id="health_future" name="health_future" min="0" max="100" value="25">
+                            <div class="value-display">
+                                <span>0</span>
+                                <span id="health_future_value">25</span>
+                                <span>100</span>
+                            </div>
+                        </div>
+                        
+                        <div class="slider-container">
+                            <label for="emotional_future">❤️ 情感连接 (Emotional Connection)</label>
+                            <input type="range" id="emotional_future" name="emotional_future" min="0" max="100" value="25">
+                            <div class="value-display">
+                                <span>0</span>
+                                <span id="emotional_future_value">25</span>
+                                <span>100</span>
+                            </div>
+                        </div>
+                        
+                        <div class="slider-container">
+                            <label for="tech_future">🤖 科技依赖 (Technology Dependency)</label>
+                            <input type="range" id="tech_future" name="tech_future" min="0" max="100" value="50">
+                            <div class="value-display">
+                                <span>0</span>
+                                <span id="tech_future_value">50</span>
+                                <span>100</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="total-display">
+                        🎯 2075年价值观总分: <span id="total_future">100</span>/100
+                    </div>
+                </div>
+
+                <div class="error" id="errorMessage">
+                    ❌ 请确保每个部分的总分都为100分！
+                </div>
+
+                <button type="submit" class="submit-btn">提交问卷</button>
+            </form>
+
+            <div class="success-message" id="successMessage">
+                <h3>✅ 感谢参与！</h3>
+                <p>您的回答已成功提交。请将以下数据记录下来用于分析：</p>
+                <div id="responseData"></div>
+            </div>
+
+            <div class="ternary-explanation">
+                <h4>📈 关于三元图</h4>
+                <p>您的回答将用于生成三元图，展示三个价值观的相对重要性。每个点在三角形中的位置表示三个价值观的平衡关系。</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 更新滑块显示值的函数
+        function updateSliderDisplay(sliderId, valueId) {
+            const slider = document.getElementById(sliderId);
+            const valueDisplay = document.getElementById(valueId);
+            valueDisplay.textContent = slider.value;
+        }
+
+        // 计算总分的函数
+        function calculateTotal(type) {
+            const health = parseInt(document.getElementById(`health_${type}`).value);
+            const emotional = parseInt(document.getElementById(`emotional_${type}`).value);
+            const tech = parseInt(document.getElementById(`tech_${type}`).value);
+            return health + emotional + tech;
+        }
+
+        // 更新总分显示
+        function updateTotalDisplay() {
+            const currentTotal = calculateTotal('current');
+            const futureTotal = calculateTotal('future');
+            
+            document.getElementById('total_current').textContent = currentTotal;
+            document.getElementById('total_future').textContent = futureTotal;
+
+            // 显示或隐藏错误信息
+            const errorMessage = document.getElementById('errorMessage');
+            if (currentTotal !== 100 || futureTotal !== 100) {
+                errorMessage.style.display = 'block';
+            } else {
+                errorMessage.style.display = 'none';
+            }
+        }
+
+        // 为所有滑块添加事件监听器
+        const sliders = [
+            'health_current', 'emotional_current', 'tech_current',
+            'health_future', 'emotional_future', 'tech_future'
+        ];
+
+        sliders.forEach(sliderId => {
+            const slider = document.getElementById(sliderId);
+            const valueId = `${sliderId}_value`;
+            
+            slider.addEventListener('input', () => {
+                updateSliderDisplay(sliderId, valueId);
+                updateTotalDisplay();
+            });
+        });
+
+        // 表单提交处理
+        document.getElementById('surveyForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const currentTotal = calculateTotal('current');
+            const futureTotal = calculateTotal('future');
+            
+            if (currentTotal !== 100 || futureTotal !== 100) {
+                document.getElementById('errorMessage').style.display = 'block';
+                return;
+            }
+
+            // 显示成功信息和数据
+            const responseData = `
+                <p><strong>当前价值观:</strong> 健康 ${document.getElementById('health_current').value}, 
+                情感 ${document.getElementById('emotional_current').value}, 
+                科技 ${document.getElementById('tech_current').value}</p>
+                <p><strong>2075年预测:</strong> 健康 ${document.getElementById('health_future').value}, 
+                情感 ${document.getElementById('emotional_future').value}, 
+                科技 ${document.getElementById('tech_future').value}</p>
+            `;
+            
+            document.getElementById('responseData').innerHTML = responseData;
+            document.getElementById('successMessage').style.display = 'block';
+            document.getElementById('errorMessage').style.display = 'none';
+            
+            // 滚动到成功信息
+            document.getElementById('successMessage').scrollIntoView({ behavior: 'smooth' });
+        });
+
+        // 初始化显示
+        sliders.forEach(sliderId => {
+            const valueId = `${sliderId}_value`;
+            updateSliderDisplay(sliderId, valueId);
+        });
+        updateTotalDisplay();
+    </script>
+</body>
+</html>
