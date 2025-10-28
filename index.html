@@ -270,11 +270,52 @@
             </form>
 
             <div class="success-message" id="successMessage">
-                <h3>✅ Thanks for the participation</h3>
-                <p>Your response has been successfully submitted. Please record the following data for analysis.：</p>
+                <h3>✅ Thank you for your participation</h3>
+                <p>Your response has been successfully submitted：</p>
                 <div id="responseData"></div>
-            </div>
+                <button onclick="downloadData()" style="background: #3498db; color: white; border: none; padding: 10px 20px; border-radius: 5px; margin: 10px; cursor: pointer;">
+        📥 Download My Data
+    </button>
+    <button onclick="copyData()" style="background: #9b59b6; color: white; border: none; padding: 10px 20px; border-radius: 5px; margin: 10px; cursor: pointer;">
+        📋 Copy Data to Clipboard
+    </button>
+</div>
 
+<script>
+function downloadData() {
+    const healthCurrent = document.getElementById('health_current').value;
+    const emotionalCurrent = document.getElementById('emotional_current').value;
+    const techCurrent = document.getElementById('tech_current').value;
+    const healthFuture = document.getElementById('health_future').value;
+    const emotionalFuture = document.getElementById('emotional_future').value;
+    const techFuture = document.getElementById('tech_future').value;
+    
+    const data = `Current Values\nHealth,Emotional,Tech\n${healthCurrent},${emotionalCurrent},${techCurrent}\n\n2075 Prediction\nHealth,Emotional,Tech\n${healthFuture},${emotionalFuture},${techFuture}`;
+    
+    const blob = new Blob([data], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'values_survey_response.csv';
+    a.click();
+    window.URL.revokeObjectURL(url);
+}
+
+function copyData() {
+    const healthCurrent = document.getElementById('health_current').value;
+    const emotionalCurrent = document.getElementById('emotional_current').value;
+    const techCurrent = document.getElementById('tech_current').value;
+    const healthFuture = document.getElementById('health_future').value;
+    const emotionalFuture = document.getElementById('emotional_future').value;
+    const techFuture = document.getElementById('tech_future').value;
+    
+    const data = `Current: Health=${healthCurrent}, Emotional=${emotionalCurrent}, Tech=${techCurrent}\nFuture: Health=${healthFuture}, Emotional=${emotionalFuture}, Tech=${techFuture}`;
+    
+    navigator.clipboard.writeText(data).then(() => {
+        alert('Data copied to clipboard!');
+    });
+}
+</script>
             <div class="ternary-explanation">
                 <h4>📈 Ternary Plot</h4>
                 <p>Your responses will be used for generating <strong>Ternary Plot</strong>, to demonstrate the relative materiality of 3 values.</p>
