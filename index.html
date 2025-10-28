@@ -232,7 +232,6 @@
             border-left: 4px solid #1abc9c;
         }
 
-        /* 自定义三元图样式 */
         .ternary-plot {
             width: 100%;
             height: 400px;
@@ -354,7 +353,7 @@
                     Please make sure that the total score for each section is 100.
                 </div>
 
-                <button type="submit" class="submit-btn">Submit Anonymously</button>
+                <button type="submit" class="submit-btn">Submit</button>
             </form>
 
             <div class="success-message" id="successMessage">
@@ -430,52 +429,78 @@
             }
         }
 
-        // Convert ternary coordinates to Cartesian coordinates
-        function ternaryToCartesian(a, b, c) {
-            // a = Health, b = Emotional, c = Tech
-            const x = (2 * b + a) / 2;
-            const y = c;
-            return { x: x / 100 * 300 + 50, y: 350 - y / 100 * 300 }; // Scale and position
-        }
+   // Fixed ternary coordinate conversion function
+function ternaryToCartesian(a, b, c) {
+    // Normalize to ensure points stay within triangle
+    const sum = a + b + c;
+    const a_norm = a / sum;
+    const b_norm = b / sum;
+    const c_norm = c / sum;
+    
+    // Ternary plot coordinate transformation
+    const x = 0.5 * (2 * b_norm + a_norm);
+    const y = c_norm;
+    
+    // Convert to SVG coordinates (triangle dimensions: base 300, height 260)
+    const svgX = 150 * x + 50;
+    const svgY = 350 - 260 * y;
+    
+    return { x: svgX, y: svgY };
+}
+       // Improved ternary plot creation function
+function createTernaryPlot(containerId, data, title) {
+    const container = document.getElementById(containerId);
+    
+    // Create grid lines
+    const gridLines = [];
+    for (let i = 0.2; i < 1; i += 0.2) {
+        // Horizontal grid lines
+        gridLines.push(
+            `<line x1="${50 + 150 * i}" y1="${350 - 260 * i}" x2="${200 - 150 * i}" y2="${350 - 260 * i}" stroke="#f0f0f0" stroke-width="1"/>`
+        );
+        // Diagonal grid lines (left)
+        gridLines.push(
+            `<line x1="50" y1="350" x2="${200 - 150 * i}" y2="${350 - 260 * i}" stroke="#f0f0f0" stroke-width="1"/>`
+        );
+        // Diagonal grid lines (right)
+        gridLines.push(
+            `<line x1="350" y1="350" x2="${50 + 150 * i}" y2="${350 - 260 * i}" stroke="#f0f0f0" stroke-width="1"/>`
+        );
+    }
 
-        // Create custom ternary plot
-        function createTernaryPlot(containerId, data, title) {
-            const container = document.getElementById(containerId);
-            container.innerHTML = `
-                <svg width="100%" height="100%" viewBox="0 0 400 400" class="ternary-plot">
-                    <!-- Triangular border -->
-                    <polygon points="50,350 200,50 350,350" fill="none" stroke="#ddd" stroke-width="2"/>
-                    
-                    <!-- grid line -->
-                    <line x1="125" y1="275" x2="200" y2="125" stroke="#f0f0f0" stroke-width="1"/>
-                    <line x1="200" y1="125" x2="275" y2="275" stroke="#f0f0f0" stroke-width="1"/>
-                    <line x1="275" y1="275" x2="125" y2="275" stroke="#f0f0f0" stroke-width="1"/>
-                    
-                    <!-- vertex label -->
-                    <text x="200" y="30" text-anchor="middle" fill="#3498db" font-weight="bold">Health</text>
-                    <text x="370" y="370" text-anchor="end" fill="#e74c3c" font-weight="bold">Emotional</text>
-                    <text x="30" y="370" text-anchor="start" fill="#2ecc71" font-weight="bold">Tech</text>
-                    
-                    <!-- data point -->
-                    ${data.map(point => {
-                        const coords = ternaryToCartesian(point[0], point[1], point[2]);
-                        const color = title.includes('Current') ? '#3498db' : '#e74c3c';
-                        return `<circle cx="${coords.x}" cy="${coords.y}" r="4" fill="${color}" class="ternary-point">
-                                <title>Health: ${point[0]}, Emotional: ${point[1]}, Tech: ${point[2]}</title>
-                            </circle>`;
-                    }).join('')}
-                    
-                    <!-- New submitted points(highlight) -->
-                    ${data.length > 0 ? `
-                        <circle cx="${ternaryToCartesian(data[data.length-1][0], data[data.length-1][1], data[data.length-1][2]).x}" 
-                                cy="${ternaryToCartesian(data[data.length-1][0], data[data.length-1][1], data[data.length-1][2]).y}" 
-                                r="6" fill="gold" stroke="#333" stroke-width="2">
-                            <title>Your Response - Health: ${data[data.length-1][0]}, Emotional: ${data[data.length-1][1]}, Tech: ${data[data.length-1][2]}</title>
-                        </circle>
-                    ` : ''}
-                </svg>
-            `;
-        }
+    container.innerHTML = `
+        <svg width="100%" height="100%" viewBox="0 0 400 400" class="ternary-plot">
+            <!-- Grid lines -->
+            ${gridLines.join('')}
+            
+            <!-- Triangle border -->
+            <polygon points="50,350 200,90 350,350" fill="none" stroke="#333" stroke-width="2"/>
+            
+            <!-- Vertex labels -->
+            <text x="200" y="70" text-anchor="middle" fill="#3498db" font-weight="bold" font-size="14">Health</text>
+            <text x="360" y="360" text-anchor="end" fill="#e74c3c" font-weight="bold" font-size="14">Emotional</text>
+            <text x="40" y="360" text-anchor="start" fill="#2ecc71" font-weight="bold" font-size="14">Tech</text>
+            
+            <!-- Data points -->
+            ${data.map(point => {
+                const coords = ternaryToCartesian(point[0], point[1], point[2]);
+                const color = title.includes('Current') ? '#3498db' : '#e74c3c';
+                return `<circle cx="${coords.x}" cy="${coords.y}" r="4" fill="${color}" class="ternary-point">
+                        <title>Health: ${point[0]}, Emotional: ${point[1]}, Tech: ${point[2]}</title>
+                    </circle>`;
+            }).join('')}
+            
+            <!-- Highlight latest submitted point -->
+            ${data.length > 0 ? `
+                <circle cx="${ternaryToCartesian(data[data.length-1][0], data[data.length-1][1], data[data.length-1][2]).x}" 
+                        cy="${ternaryToCartesian(data[data.length-1][0], data[data.length-1][1], data[data.length-1][2]).y}" 
+                        r="6" fill="gold" stroke="#333" stroke-width="2">
+                    <title>Your Response - Health: ${data[data.length-1][0]}, Emotional: ${data[data.length-1][1]}, Tech: ${data[data.length-1][2]}</title>
+                </circle>
+            ` : ''}
+        </svg>
+    `;
+}
 
         // Update slider display values
         function updateSliderDisplay(sliderId, valueId) {
