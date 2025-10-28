@@ -273,65 +273,77 @@
                 <h3>✅ Thank you for your participation</h3>
                 <p>Your response has been successfully submitted：</p>
                 <div id="responseData"></div>
-                <button onclick="downloadData()" style="background: #3498db; color: white; border: none; padding: 10px 20px; border-radius: 5px; margin: 10px; cursor: pointer;">
-        📥 Download My Data
-    </button>
-    <button onclick="copyData()" style="background: #9b59b6; color: white; border: none; padding: 10px 20px; border-radius: 5px; margin: 10px; cursor: pointer;">
-        📋 Copy Data to Clipboard
-    </button>
-</div>
-
-<script>
-function downloadData() {
-    const healthCurrent = document.getElementById('health_current').value;
-    const emotionalCurrent = document.getElementById('emotional_current').value;
-    const techCurrent = document.getElementById('tech_current').value;
-    const healthFuture = document.getElementById('health_future').value;
-    const emotionalFuture = document.getElementById('emotional_future').value;
-    const techFuture = document.getElementById('tech_future').value;
-    
-    const data = `Current Values\nHealth,Emotional,Tech\n${healthCurrent},${emotionalCurrent},${techCurrent}\n\n2075 Prediction\nHealth,Emotional,Tech\n${healthFuture},${emotionalFuture},${techFuture}`;
-    
-    const blob = new Blob([data], { type: 'text/csv' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'values_survey_response.csv';
-    a.click();
-    window.URL.revokeObjectURL(url);
-}
-
-function copyData() {
-    const healthCurrent = document.getElementById('health_current').value;
-    const emotionalCurrent = document.getElementById('emotional_current').value;
-    const techCurrent = document.getElementById('tech_current').value;
-    const healthFuture = document.getElementById('health_future').value;
-    const emotionalFuture = document.getElementById('emotional_future').value;
-    const techFuture = document.getElementById('tech_future').value;
-    
-    const data = `Current: Health=${healthCurrent}, Emotional=${emotionalCurrent}, Tech=${techCurrent}\nFuture: Health=${healthFuture}, Emotional=${emotionalFuture}, Tech=${techFuture}`;
-    
-    navigator.clipboard.writeText(data).then(() => {
-        alert('Data copied to clipboard!');
-    });
-}
-</script>
+               <div
+                   
             <div class="ternary-explanation">
                 <h4>📈 Ternary Plot</h4>
                 <p>Your responses will be used for generating <strong>Ternary Plot</strong>, to demonstrate the relative materiality of 3 values.</p>
             </div>
         </div>
+   <div class="charts-container">
+                    <div class="chart-section">
+                        <h3>🕐 Current Values Distribution</h3>
+                        <div class="chart-container">
+                            <canvas id="currentTernaryChart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <div class="chart-section">
+                        <h3>🚀 2075 Values Distribution</h3>
+                        <div class="chart-container">
+                            <canvas id="futureTernaryChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="data-actions">
+                    <button onclick="downloadAllData()" class="action-btn">📥 Download All Data</button>
+                    <button onclick="addSampleData()" class="action-btn">🎯 Add Sample Data</button>
+                </div>
+
+                <div class="admin-link">
+                    <a href="admin.html" target="_blank" class="admin-btn">
+                        📊 Advanced Analytics Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script>
-        // Function for updating the displayed value of the slider
+        // Initialize data storage
+        function initializeStorage() {
+            if (!localStorage.getItem('surveyData')) {
+                // Add some sample data for demonstration
+                const sampleData = {
+                    current: [
+                        [40, 35, 25],
+                        [50, 30, 20],
+                        [35, 40, 25],
+                        [45, 25, 30],
+                        [30, 45, 25]
+                    ],
+                    future: [
+                        [25, 25, 50],
+                        [20, 30, 50],
+                        [30, 20, 50],
+                        [15, 35, 50],
+                        [25, 15, 60]
+                    ],
+                    timestamps: Array(5).fill().map((_, i) => new Date(Date.now() - i * 60000).toISOString())
+                };
+                localStorage.setItem('surveyData', JSON.stringify(sampleData));
+            }
+        }
+
+        // Update slider display values
         function updateSliderDisplay(sliderId, valueId) {
             const slider = document.getElementById(sliderId);
             const valueDisplay = document.getElementById(valueId);
             valueDisplay.textContent = slider.value;
         }
 
-        // Function for calculating the total score
+        // Calculate total points
         function calculateTotal(type) {
             const health = parseInt(document.getElementById(`health_${type}`).value);
             const emotional = parseInt(document.getElementById(`emotional_${type}`).value);
@@ -339,7 +351,7 @@ function copyData() {
             return health + emotional + tech;
         }
 
-        // Update Total Display
+        // Update total display
         function updateTotalDisplay() {
             const currentTotal = calculateTotal('current');
             const futureTotal = calculateTotal('future');
@@ -347,7 +359,6 @@ function copyData() {
             document.getElementById('total_current').textContent = currentTotal;
             document.getElementById('total_future').textContent = futureTotal;
 
-            // Show or hide error messages
             const errorMessage = document.getElementById('errorMessage');
             if (currentTotal !== 100 || futureTotal !== 100) {
                 errorMessage.style.display = 'block';
@@ -356,7 +367,188 @@ function copyData() {
             }
         }
 
-        // Add event listeners to all the sliders
+        // Save anonymous data
+        function saveAnonymousData() {
+            const data = JSON.parse(localStorage.getItem('surveyData'));
+            
+            const newResponse = {
+                current: [
+                    parseInt(document.getElementById('health_current').value),
+                    parseInt(document.getElementById('emotional_current').value),
+                    parseInt(document.getElementById('tech_current').value)
+                ],
+                future: [
+                    parseInt(document.getElementById('health_future').value),
+                    parseInt(document.getElementById('emotional_future').value),
+                    parseInt(document.getElementById('tech_future').value)
+                ],
+                timestamp: new Date().toISOString()
+            };
+
+            data.current.push(newResponse.current);
+            data.future.push(newResponse.future);
+            data.timestamps.push(newResponse.timestamp);
+
+            localStorage.setItem('surveyData', JSON.stringify(data));
+            updateResponseCount();
+            createTernaryPlots();
+        }
+
+        // Update response count
+        function updateResponseCount() {
+            const data = JSON.parse(localStorage.getItem('surveyData'));
+            document.getElementById('responseCount').textContent = data.current.length;
+        }
+
+        // Create ternary plots using scatter charts
+        function createTernaryPlots() {
+            const data = JSON.parse(localStorage.getItem('surveyData'));
+            
+            // Convert to scatter plot data (simulating ternary coordinates)
+            const currentPoints = data.current.map(point => ({
+                x: point[0] + point[1] * 0.5,  // Simulated x coordinate
+                y: point[2] + point[1] * 0.5   // Simulated y coordinate
+            }));
+            
+            const futurePoints = data.future.map(point => ({
+                x: point[0] + point[1] * 0.5,
+                y: point[2] + point[1] * 0.5
+            }));
+
+            // Current values chart
+            const currentCtx = document.getElementById('currentTernaryChart').getContext('2d');
+            if (window.currentChart) window.currentChart.destroy();
+            window.currentChart = new Chart(currentCtx, {
+                type: 'scatter',
+                data: {
+                    datasets: [{
+                        label: 'Responses',
+                        data: currentPoints,
+                        backgroundColor: 'rgba(52, 152, 219, 0.7)',
+                        borderColor: 'rgba(52, 152, 219, 1)',
+                        borderWidth: 1,
+                        pointRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            title: { display: true, text: 'Health + Emotional' },
+                            min: 0,
+                            max: 150
+                        },
+                        y: {
+                            title: { display: true, text: 'Tech + Emotional' },
+                            min: 0,
+                            max: 150
+                        }
+                    },
+                    plugins: {
+                        title: { display: true, text: 'Current Values Distribution' },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const index = context.dataIndex;
+                                    const point = data.current[index];
+                                    return `Health: ${point[0]}, Emotional: ${point[1]}, Tech: ${point[2]}`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Future values chart
+            const futureCtx = document.getElementById('futureTernaryChart').getContext('2d');
+            if (window.futureChart) window.futureChart.destroy();
+            window.futureChart = new Chart(futureCtx, {
+                type: 'scatter',
+                data: {
+                    datasets: [{
+                        label: 'Responses',
+                        data: futurePoints,
+                        backgroundColor: 'rgba(231, 76, 60, 0.7)',
+                        borderColor: 'rgba(231, 76, 60, 1)',
+                        borderWidth: 1,
+                        pointRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            title: { display: true, text: 'Health + Emotional' },
+                            min: 0,
+                            max: 150
+                        },
+                        y: {
+                            title: { display: true, text: 'Tech + Emotional' },
+                            min: 0,
+                            max: 150
+                        }
+                    },
+                    plugins: {
+                        title: { display: true, text: '2075 Values Distribution' },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const index = context.dataIndex;
+                                    const point = data.future[index];
+                                    return `Health: ${point[0]}, Emotional: ${point[1]}, Tech: ${point[2]}`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Download all data
+        function downloadAllData() {
+            const data = JSON.parse(localStorage.getItem('surveyData'));
+            const csvContent = "data:text/csv;charset=utf-8," 
+                + "Type,Health,Emotional,Tech\n"
+                + data.current.map((point, i) => `Current,${point[0]},${point[1]},${point[2]}`).join('\n')
+                + '\n'
+                + data.future.map((point, i) => `Future,${point[0]},${point[1]},${point[2]}`).join('\n');
+            
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "survey_data.csv");
+            document.body.appendChild(link);
+            link.click();
+        }
+
+        // Add sample data for demonstration
+        function addSampleData() {
+            const data = JSON.parse(localStorage.getItem('surveyData'));
+            
+            // Add 5 more sample responses
+            for (let i = 0; i < 5; i++) {
+                data.current.push([
+                    Math.floor(Math.random() * 30 + 30),
+                    Math.floor(Math.random() * 30 + 30),
+                    100 - (data.current[data.current.length-1][0] + data.current[data.current.length-1][1])
+                ]);
+                data.future.push([
+                    Math.floor(Math.random() * 20 + 15),
+                    Math.floor(Math.random() * 20 + 15),
+                    100 - (data.future[data.future.length-1][0] + data.future[data.future.length-1][1])
+                ]);
+                data.timestamps.push(new Date().toISOString());
+            }
+            
+            localStorage.setItem('surveyData', JSON.stringify(data));
+            updateResponseCount();
+            createTernaryPlots();
+            alert('5 sample responses added!');
+        }
+
+        // Event listeners
         const sliders = [
             'health_current', 'emotional_current', 'tech_current',
             'health_future', 'emotional_future', 'tech_future'
@@ -365,14 +557,13 @@ function copyData() {
         sliders.forEach(sliderId => {
             const slider = document.getElementById(sliderId);
             const valueId = `${sliderId}_value`;
-            
             slider.addEventListener('input', () => {
                 updateSliderDisplay(sliderId, valueId);
                 updateTotalDisplay();
             });
         });
 
-        // Form submission processing
+        // Form submission
         document.getElementById('surveyForm').addEventListener('submit', function(e) {
             e.preventDefault();
             
@@ -384,30 +575,22 @@ function copyData() {
                 return;
             }
 
-            // Display success information and data
-            const responseData = `
-                <p><strong>Previous Value:</strong> Health ${document.getElementById('health_current').value}, 
-                Emotion ${document.getElementById('emotional_current').value}, 
-                Tech ${document.getElementById('tech_current').value}</p>
-                <p><strong>2075 Forecast:</strong> Health ${document.getElementById('health_future').value}, 
-                Emotion ${document.getElementById('emotional_future').value}, 
-                Tech ${document.getElementById('tech_future').value}</p>
-            `;
-            
-            document.getElementById('responseData').innerHTML = responseData;
+            saveAnonymousData();
             document.getElementById('successMessage').style.display = 'block';
             document.getElementById('errorMessage').style.display = 'none';
-            
-            // Scroll to success message
+            document.getElementById('surveyForm').style.display = 'none';
             document.getElementById('successMessage').scrollIntoView({ behavior: 'smooth' });
         });
 
-        // Initialization display
+        // Initialize
+        initializeStorage();
+        updateResponseCount();
         sliders.forEach(sliderId => {
             const valueId = `${sliderId}_value`;
             updateSliderDisplay(sliderId, valueId);
         });
         updateTotalDisplay();
+        createTernaryPlots();
     </script>
 </body>
 </html>
