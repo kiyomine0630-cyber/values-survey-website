@@ -283,14 +283,14 @@
     </div>
 
     <script>
-        // 更新滑块显示值的函数
+        // Function for updating the displayed value of the slider
         function updateSliderDisplay(sliderId, valueId) {
             const slider = document.getElementById(sliderId);
             const valueDisplay = document.getElementById(valueId);
             valueDisplay.textContent = slider.value;
         }
 
-        // 计算总分的函数
+        // Function for calculating the total score
         function calculateTotal(type) {
             const health = parseInt(document.getElementById(`health_${type}`).value);
             const emotional = parseInt(document.getElementById(`emotional_${type}`).value);
@@ -298,7 +298,7 @@
             return health + emotional + tech;
         }
 
-        // 更新总分显示
+        // Update Total Display
         function updateTotalDisplay() {
             const currentTotal = calculateTotal('current');
             const futureTotal = calculateTotal('future');
@@ -306,7 +306,7 @@
             document.getElementById('total_current').textContent = currentTotal;
             document.getElementById('total_future').textContent = futureTotal;
 
-            // 显示或隐藏错误信息
+            // Show or hide error messages
             const errorMessage = document.getElementById('errorMessage');
             if (currentTotal !== 100 || futureTotal !== 100) {
                 errorMessage.style.display = 'block';
@@ -315,7 +315,7 @@
             }
         }
 
-        // 为所有滑块添加事件监听器
+        // Add event listeners to all the sliders
         const sliders = [
             'health_current', 'emotional_current', 'tech_current',
             'health_future', 'emotional_future', 'tech_future'
@@ -331,7 +331,7 @@
             });
         });
 
-        // 表单提交处理
+        // Form submission processing
         document.getElementById('surveyForm').addEventListener('submit', function(e) {
             e.preventDefault();
             
@@ -343,25 +343,25 @@
                 return;
             }
 
-            // 显示成功信息和数据
+            // Display success information and data
             const responseData = `
-                <p><strong>当前价值观:</strong> 健康 ${document.getElementById('health_current').value}, 
-                情感 ${document.getElementById('emotional_current').value}, 
-                科技 ${document.getElementById('tech_current').value}</p>
-                <p><strong>2075年预测:</strong> 健康 ${document.getElementById('health_future').value}, 
-                情感 ${document.getElementById('emotional_future').value}, 
-                科技 ${document.getElementById('tech_future').value}</p>
+                <p><strong>Previous Value:</strong> Health ${document.getElementById('health_current').value}, 
+                Emotion ${document.getElementById('emotional_current').value}, 
+                Tech ${document.getElementById('tech_current').value}</p>
+                <p><strong>2075 Forecast:</strong> Health ${document.getElementById('health_future').value}, 
+                Emotion ${document.getElementById('emotional_future').value}, 
+                Tech ${document.getElementById('tech_future').value}</p>
             `;
             
             document.getElementById('responseData').innerHTML = responseData;
             document.getElementById('successMessage').style.display = 'block';
             document.getElementById('errorMessage').style.display = 'none';
             
-            // 滚动到成功信息
+            // Scroll to success message
             document.getElementById('successMessage').scrollIntoView({ behavior: 'smooth' });
         });
 
-        // 初始化显示
+        // Initialization display
         sliders.forEach(sliderId => {
             const valueId = `${sliderId}_value`;
             updateSliderDisplay(sliderId, valueId);
