@@ -429,44 +429,77 @@
             }
         }
 
-   // Fixed ternary coordinate conversion function
+  // Corrected ternary coordinate conversion function
 function ternaryToCartesian(a, b, c) {
     // Normalize to ensure points stay within triangle
     const sum = a + b + c;
-    const a_norm = a / sum;
-    const b_norm = b / sum;
-    const c_norm = c / sum;
+    const health = a / sum;
+    const emotional = b / sum;
+    const tech = c / sum;
     
-    // Ternary plot coordinate transformation
-    const x = 0.5 * (2 * b_norm + a_norm);
-    const y = c_norm;
+    // Correct ternary coordinate transformation
+    // Vertices: Health(top), Emotional(bottom-right), Tech(bottom-left)
+    const x = 0.5 * (2 * emotional + health);
+    const y = (Math.sqrt(3) / 2) * health;
     
-    // Convert to SVG coordinates (triangle dimensions: base 300, height 260)
-    const svgX = 150 * x + 50;
-    const svgY = 350 - 260 * y;
+    // Convert to SVG coordinates (equilateral triangle with side length ~300)
+    const scale = 280; // Scale factor
+    const centerX = 200;
+    const centerY = 200;
+    
+    const svgX = centerX + (x - 0.5) * scale;
+    const svgY = centerY - (y - (Math.sqrt(3)/6)) * scale;
     
     return { x: svgX, y: svgY };
 }
-       // Improved ternary plot creation function
+
+// Improved ternary plot creation function
 function createTernaryPlot(containerId, data, title) {
     const container = document.getElementById(containerId);
     
+    // Triangle vertices coordinates
+    const top = { x: 200, y: 60 };        // Health
+    const bottomLeft = { x: 60, y: 340 };  // Tech
+    const bottomRight = { x: 340, y: 340 };// Emotional
+    
     // Create grid lines
     const gridLines = [];
-    for (let i = 0.2; i < 1; i += 0.2) {
-        // Horizontal grid lines
-        gridLines.push(
-            `<line x1="${50 + 150 * i}" y1="${350 - 260 * i}" x2="${200 - 150 * i}" y2="${350 - 260 * i}" stroke="#f0f0f0" stroke-width="1"/>`
-        );
-        // Diagonal grid lines (left)
-        gridLines.push(
-            `<line x1="50" y1="350" x2="${200 - 150 * i}" y2="${350 - 260 * i}" stroke="#f0f0f0" stroke-width="1"/>`
-        );
-        // Diagonal grid lines (right)
-        gridLines.push(
-            `<line x1="350" y1="350" x2="${50 + 150 * i}" y2="${350 - 260 * i}" stroke="#f0f0f0" stroke-width="1"/>`
-        );
-    }
+    const gridValues = [0.2, 0.4, 0.6, 0.8];
+    
+    gridValues.forEach(value => {
+        // Lines parallel to bottom (Health levels)
+        const h1 = {
+            x: top.x + (bottomLeft.x - top.x) * value,
+            y: top.y + (bottomLeft.y - top.y) * value
+        };
+        const h2 = {
+            x: top.x + (bottomRight.x - top.x) * value,
+            y: top.y + (bottomRight.y - top.y) * value
+        };
+        gridLines.push(`<line x1="${h1.x}" y1="${h1.y}" x2="${h2.x}" y2="${h2.y}" stroke="#f0f0f0" stroke-width="1"/>`);
+        
+        // Lines parallel to left (Emotional levels)
+        const e1 = {
+            x: bottomLeft.x + (top.x - bottomLeft.x) * value,
+            y: bottomLeft.y + (top.y - bottomLeft.y) * value
+        };
+        const e2 = {
+            x: bottomLeft.x + (bottomRight.x - bottomLeft.x) * value,
+            y: bottomLeft.y + (bottomRight.y - bottomLeft.y) * value
+        };
+        gridLines.push(`<line x1="${e1.x}" y1="${e1.y}" x2="${e2.x}" y2="${e2.y}" stroke="#f0f0f0" stroke-width="1"/>`);
+        
+        // Lines parallel to right (Tech levels)
+        const t1 = {
+            x: bottomRight.x + (top.x - bottomRight.x) * value,
+            y: bottomRight.y + (top.y - bottomRight.y) * value
+        };
+        const t2 = {
+            x: bottomRight.x + (bottomLeft.x - bottomRight.x) * value,
+            y: bottomRight.y + (bottomLeft.y - bottomRight.y) * value
+        };
+        gridLines.push(`<line x1="${t1.x}" y1="${t1.y}" x2="${t2.x}" y2="${t2.y}" stroke="#f0f0f0" stroke-width="1"/>`);
+    });
 
     container.innerHTML = `
         <svg width="100%" height="100%" viewBox="0 0 400 400" class="ternary-plot">
@@ -474,30 +507,50 @@ function createTernaryPlot(containerId, data, title) {
             ${gridLines.join('')}
             
             <!-- Triangle border -->
-            <polygon points="50,350 200,90 350,350" fill="none" stroke="#333" stroke-width="2"/>
+            <polygon points="${top.x},${top.y} ${bottomLeft.x},${bottomLeft.y} ${bottomRight.x},${bottomRight.y}" 
+                     fill="none" stroke="#333" stroke-width="2"/>
             
             <!-- Vertex labels -->
-            <text x="200" y="70" text-anchor="middle" fill="#3498db" font-weight="bold" font-size="14">Health</text>
-            <text x="360" y="360" text-anchor="end" fill="#e74c3c" font-weight="bold" font-size="14">Emotional</text>
-            <text x="40" y="360" text-anchor="start" fill="#2ecc71" font-weight="bold" font-size="14">Tech</text>
+            <text x="${top.x}" y="${top.y - 15}" text-anchor="middle" fill="#3498db" font-weight="bold" font-size="14">Health</text>
+            <text x="${bottomRight.x + 10}" y="${bottomRight.y + 5}" text-anchor="start" fill="#e74c3c" font-weight="bold" font-size="14">Emotional</text>
+            <text x="${bottomLeft.x - 10}" y="${bottomLeft.y + 5}" text-anchor="end" fill="#2ecc71" font-weight="bold" font-size="14">Tech</text>
+            
+            <!-- Axis labels for grid values -->
+            <text x="${top.x + (bottomLeft.x - top.x) * 0.2}" y="${top.y + (bottomLeft.y - top.y) * 0.2 + 15}" text-anchor="middle" fill="#666" font-size="12">80%</text>
+            <text x="${top.x + (bottomLeft.x - top.x) * 0.4}" y="${top.y + (bottomLeft.y - top.y) * 0.4 + 15}" text-anchor="middle" fill="#666" font-size="12">60%</text>
+            <text x="${top.x + (bottomLeft.x - top.x) * 0.6}" y="${top.y + (bottomLeft.y - top.y) * 0.6 + 15}" text-anchor="middle" fill="#666" font-size="12">40%</text>
+            <text x="${top.x + (bottomLeft.x - top.x) * 0.8}" y="${top.y + (bottomLeft.y - top.y) * 0.8 + 15}" text-anchor="middle" fill="#666" font-size="12">20%</text>
             
             <!-- Data points -->
             ${data.map(point => {
                 const coords = ternaryToCartesian(point[0], point[1], point[2]);
                 const color = title.includes('Current') ? '#3498db' : '#e74c3c';
-                return `<circle cx="${coords.x}" cy="${coords.y}" r="4" fill="${color}" class="ternary-point">
-                        <title>Health: ${point[0]}, Emotional: ${point[1]}, Tech: ${point[2]}</title>
-                    </circle>`;
+                // Check if point is within triangle bounds (safety check)
+                const isValid = !isNaN(coords.x) && !isNaN(coords.y) && 
+                               coords.x >= 0 && coords.x <= 400 && 
+                               coords.y >= 0 && coords.y <= 400;
+                
+                if (isValid) {
+                    return `<circle cx="${coords.x}" cy="${coords.y}" r="4" fill="${color}" class="ternary-point">
+                            <title>Health: ${point[0]}%, Emotional: ${point[1]}%, Tech: ${point[2]}%</title>
+                        </circle>`;
+                }
+                return '';
             }).join('')}
             
             <!-- Highlight latest submitted point -->
-            ${data.length > 0 ? `
-                <circle cx="${ternaryToCartesian(data[data.length-1][0], data[data.length-1][1], data[data.length-1][2]).x}" 
-                        cy="${ternaryToCartesian(data[data.length-1][0], data[data.length-1][1], data[data.length-1][2]).y}" 
-                        r="6" fill="gold" stroke="#333" stroke-width="2">
-                    <title>Your Response - Health: ${data[data.length-1][0]}, Emotional: ${data[data.length-1][1]}, Tech: ${data[data.length-1][2]}</title>
-                </circle>
-            ` : ''}
+            ${data.length > 0 ? (() => {
+                const lastPoint = data[data.length-1];
+                const coords = ternaryToCartesian(lastPoint[0], lastPoint[1], lastPoint[2]);
+                const isValid = !isNaN(coords.x) && !isNaN(coords.y);
+                
+                if (isValid) {
+                    return `<circle cx="${coords.x}" cy="${coords.y}" r="6" fill="gold" stroke="#333" stroke-width="2">
+                            <title>Your Response - Health: ${lastPoint[0]}%, Emotional: ${lastPoint[1]}%, Tech: ${lastPoint[2]}%</title>
+                        </circle>`;
+                }
+                return '';
+            })() : ''}
         </svg>
     `;
 }
