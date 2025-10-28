@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Value Survey - Now vs. 2075</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         * {
             margin: 0;
@@ -19,7 +20,7 @@
         }
         
         .container {
-            max-width: 800px;
+            max-width: 1000px;
             margin: 0 auto;
             background: white;
             border-radius: 15px;
@@ -148,10 +149,60 @@
             display: none;
             background: #d5f4e6;
             color: #27ae60;
-            padding: 20px;
+            padding: 30px;
             border-radius: 10px;
             text-align: center;
             margin-top: 20px;
+        }
+        
+        .charts-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin: 30px 0;
+        }
+        
+        .chart-section {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            border: 2px solid #e9ecef;
+        }
+        
+        .chart-section h3 {
+            text-align: center;
+            margin-bottom: 15px;
+            color: #2c3e50;
+        }
+        
+        .chart-container {
+            position: relative;
+            height: 300px;
+            width: 100%;
+        }
+        
+        .response-stats {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border: 2px solid #3498db;
+        }
+        
+        .data-actions {
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        .action-btn {
+            background: #9b59b6;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 0 10px;
+            font-size: 1em;
         }
         
         .ternary-explanation {
@@ -160,6 +211,15 @@
             border-radius: 8px;
             margin-top: 20px;
             border-left: 4px solid #ffc107;
+        }
+        
+        .anonymous-notice {
+            background: #e8f6f3;
+            padding: 10px;
+            border-radius: 5px;
+            text-align: center;
+            margin: 10px 0;
+            border-left: 4px solid #1abc9c;
         }
     </style>
 </head>
@@ -171,6 +231,10 @@
         </div>
         
         <div class="content">
+            <div class="anonymous-notice">
+                <strong>🔒 匿名调查：</strong> 您的回答将完全匿名，仅用于整体分析。
+            </div>
+
             <div class="instructions">
                 <h3>🔍 Introduction</h3>
                 <p>Please evaluate the relative materiality of 3 following values in <strong>previous society and 2075</strong>. </p>
@@ -180,7 +244,7 @@
             <form id="surveyForm">
                 <!-- Previous values -->
                 <div class="survey-section">
-                    <h2>🕐Previous Social Values Evaluation </h2>
+                    <h2>🕐 Previous Social Values Evaluation</h2>
                     <p>Please evaluate the relative materiality of following values in<strong> Previous Society</strong>：</p>
                     
                     <div class="slider-group">
@@ -258,29 +322,27 @@
                     </div>
                     
                     <div class="total-display">
-                        Total score of values in 2075 <span id="total_future">100</span>/100
+                        Total score of values in 2075: <span id="total_future">100</span>/100
                     </div>
                 </div>
 
                 <div class="error" id="errorMessage">
-                    
+                    Please make sure that the total score for each section is 100.
                 </div>
-                        Please Make sure that the total score for each section is 100.
-                <button type="submit" class="submit-btn">submit</button>
+
+                <button type="submit" class="submit-btn">Submit Anonymously</button>
             </form>
 
             <div class="success-message" id="successMessage">
                 <h3>✅ Thank you for your participation</h3>
-                <p>Your response has been successfully submitted：</p>
-                <div id="responseData"></div>
-               <div
-                   
-            <div class="ternary-explanation">
-                <h4>📈 Ternary Plot</h4>
-                <p>Your responses will be used for generating <strong>Ternary Plot</strong>, to demonstrate the relative materiality of 3 values.</p>
-            </div>
-        </div>
-   <div class="charts-container">
+                <p>Your <strong>anonymous</strong> response has been successfully submitted.</p>
+                
+                <div class="response-stats">
+                    <h4>📈 Current Response Statistics</h4>
+                    <p>Total anonymous responses collected: <strong id="responseCount">0</strong></p>
+                </div>
+
+                <div class="charts-container">
                     <div class="chart-section">
                         <h3>🕐 Current Values Distribution</h3>
                         <div class="chart-container">
@@ -300,12 +362,11 @@
                     <button onclick="downloadAllData()" class="action-btn">📥 Download All Data</button>
                     <button onclick="addSampleData()" class="action-btn">🎯 Add Sample Data</button>
                 </div>
+            </div>
 
-                <div class="admin-link">
-                    <a href="admin.html" target="_blank" class="admin-btn">
-                        📊 Advanced Analytics Dashboard
-                    </a>
-                </div>
+            <div class="ternary-explanation">
+                <h4>📈 Ternary Plot</h4>
+                <p>Your responses will be used for generating <strong>Ternary Plot</strong>, to demonstrate the relative materiality of 3 values.</p>
             </div>
         </div>
     </div>
@@ -417,7 +478,10 @@
 
             // Current values chart
             const currentCtx = document.getElementById('currentTernaryChart').getContext('2d');
-            if (window.currentChart) window.currentChart.destroy();
+            if (window.currentChart) {
+                window.currentChart.destroy();
+            }
+            
             window.currentChart = new Chart(currentCtx, {
                 type: 'scatter',
                 data: {
@@ -462,7 +526,10 @@
 
             // Future values chart
             const futureCtx = document.getElementById('futureTernaryChart').getContext('2d');
-            if (window.futureChart) window.futureChart.destroy();
+            if (window.futureChart) {
+                window.futureChart.destroy();
+            }
+            
             window.futureChart = new Chart(futureCtx, {
                 type: 'scatter',
                 data: {
@@ -529,16 +596,17 @@
             
             // Add 5 more sample responses
             for (let i = 0; i < 5; i++) {
-                data.current.push([
-                    Math.floor(Math.random() * 30 + 30),
-                    Math.floor(Math.random() * 30 + 30),
-                    100 - (data.current[data.current.length-1][0] + data.current[data.current.length-1][1])
-                ]);
-                data.future.push([
-                    Math.floor(Math.random() * 20 + 15),
-                    Math.floor(Math.random() * 20 + 15),
-                    100 - (data.future[data.future.length-1][0] + data.future[data.future.length-1][1])
-                ]);
+                const health = Math.floor(Math.random() * 30 + 30);
+                const emotional = Math.floor(Math.random() * 30 + 30);
+                const tech = 100 - health - emotional;
+                
+                data.current.push([health, emotional, tech]);
+                
+                const futureHealth = Math.floor(Math.random() * 20 + 15);
+                const futureEmotional = Math.floor(Math.random() * 20 + 15);
+                const futureTech = 100 - futureHealth - futureEmotional;
+                
+                data.future.push([futureHealth, futureEmotional, futureTech]);
                 data.timestamps.push(new Date().toISOString());
             }
             
@@ -590,7 +658,8 @@
             updateSliderDisplay(sliderId, valueId);
         });
         updateTotalDisplay();
-        createTernaryPlots();
+        // Initialize charts only after page load
+        setTimeout(createTernaryPlots, 100);
     </script>
 </body>
 </html>
